@@ -1,5 +1,8 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "dev": "deno check main.ts && deno run --allow-read main.ts"
+  },
+  "imports": {
+    "wordlist-english": "npm:wordlist-english@^1.2.1"
   }
 }

@@ -1,0 +1,15 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:wordlist-english@^1.2.1": "npm:wordlist-english@1.2.1"
+    },
+    "npm": {
+      "wordlist-english@1.2.1": {
+        "integrity": "sha512-vaiQQiu95UeON0WZFtiTrWfZmIiUd2rhrhMCBeEzwq3oTVzHCX8naGCqv/smSspE9kH2sN+E8lZyV0JZjqSzGw==",
+        "dependencies": {}
+      }
+    }
+  },
+  "remote": {}
+}
