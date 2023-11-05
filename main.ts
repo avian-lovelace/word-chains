@@ -1,5 +1,10 @@
-import wordlist from 'wordlist-english';
+import wordlist from "wordlist-english";
 
-if (import.meta.main) {
-  console.log(wordlist['english/10'].slice(0, 100));
-}
+const words: string[] = wordlist["english/10"];
+const onlyLettersRegex = /^[a-z]+$/;
+const filteredWords = wordlist.filter((word: string) =>
+    onlyLettersRegex.test(word)
+);
+filteredWords.sort();
+
+const start = words[Math.floor(Math.random() * words.length)];
