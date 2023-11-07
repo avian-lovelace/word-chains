@@ -1,5 +1,7 @@
 import wordlist from "wordlist-english";
 
+const settings: Settings = await loadSettings(Deno.args[0] ?? "settings.json");
+
 const dictionary = getDictionary();
 
 while (true) {
@@ -7,8 +9,21 @@ while (true) {
     findWordChains(start, start, [start]);
 }
 
+async function loadSettings(settingsFile: string): Promise<Settings> {
+    const defaultSettings: Settings = {
+        dictionary: "english/10",
+    };
+    const settingsFileText = await Deno.readTextFile(settingsFile);
+    const fileSettings: Settings = JSON.parse(settingsFileText);
+    return { ...defaultSettings, ...fileSettings };
+}
+
+interface Settings {
+    dictionary: string;
+}
+
 function getDictionary(): string[] {
-    const words: string[] = wordlist["english/10"];
+    const words: string[] = wordlist[settings.dictionary];
     const onlyLettersRegex = /^[a-z]+$/;
     const filteredWords = words.filter((word: string) =>
         onlyLettersRegex.test(word)
