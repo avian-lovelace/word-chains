@@ -3,9 +3,10 @@ import wordlist from "wordlist-english";
 const settings: Settings = await loadSettings(Deno.args[0] ?? "settings.json");
 
 const dictionary = getDictionary();
+const startWords = getStartWords(dictionary);
 
 while (true) {
-    const start = dictionary[Math.floor(Math.random() * dictionary.length)];
+    const start = startWords[Math.floor(Math.random() * startWords.length)];
     findWordChains(start, start, [start]);
 }
 
@@ -31,8 +32,15 @@ function getDictionary(): string[] {
     return filteredWords.sort();
 }
 
+function getStartWords(dictionary: string[]): string[] {
+    return dictionary.filter((word: string, index: number) =>
+        dictionary[index + 1]?.startsWith(word)
+    );
+}
+
 function findWordChains(chain: string, tail: string, segments: string[]) {
     console.log(`Expanding ${segments}`);
+    console.log(tail);
     prompt("Press enter to continue");
     const findResults = findWordsWithPrefix(tail);
     if (!findResults) {
