@@ -13,14 +13,16 @@ while (true) {
 async function loadSettings(settingsFile: string): Promise<Settings> {
     const defaultSettings: Settings = {
         dictionary: "english/10",
+        minOverlap: 2,
     };
     const settingsFileText = await Deno.readTextFile(settingsFile);
-    const fileSettings: Settings = JSON.parse(settingsFileText);
+    const fileSettings: Partial<Settings> = JSON.parse(settingsFileText);
     return { ...defaultSettings, ...fileSettings };
 }
 
 interface Settings {
     dictionary: string;
+    minOverlap: number;
 }
 
 function getDictionary(): string[] {
