@@ -18,6 +18,56 @@ const startConnectedNodes = findConnectedNodes(
     Direction.Forward
 );
 console.log(`Start-connected nodes: ${startConnectedNodes.size}`);
+const endConnectedNodes = findConnectedNodes(
+    wordGraph,
+    terminalNodes,
+    Direction.Backward
+);
+console.log(`End-connected nodes: ${endConnectedNodes.size}`);
+const biconnectedNodes = [...startConnectedNodes.keys()].filter((node) =>
+    endConnectedNodes.has(node)
+);
+console.log(`biconnected nodes: ${biconnectedNodes.length}`);
+const biconnectedNontermialNodes = biconnectedNodes.filter(
+    (node) => !dictionarySet.has(node)
+);
+const startNodes = terminalNodes.filter((node) => {
+    const nextNodes = wordGraph.getNext(node);
+    return biconnectedNontermialNodes.some((biconnectedNode) =>
+        nextNodes.has(biconnectedNode)
+    );
+});
+const endNodes = terminalNodes.filter((node) => {
+    const prevNodes = wordGraph.getPrev(node);
+    return biconnectedNontermialNodes.some((biconnectedNode) =>
+        prevNodes.has(biconnectedNode)
+    );
+});
+
+const filteredNodes = [
+    ...biconnectedNontermialNodes,
+    ...startNodes,
+    ...endNodes,
+];
+const filteredGraph = wordGraph.makeFilteredGraph(new Set(filteredNodes));
+
+let longestPath: string[] = [];
+for (let i = 0; i < 1000000; i++) {
+    let currentNode = startNodes[Math.floor(Math.random() * startNodes.length)];
+    const path = [currentNode];
+    while (path.length === 1 || !dictionarySet.has(currentNode)) {
+        const nextNodes = [...filteredGraph.getNext(currentNode)];
+        currentNode = nextNodes[Math.floor(Math.random() * nextNodes.length)];
+        path.push(currentNode);
+    }
+    if (
+        new Set(path).size === path.length &&
+        path.length > longestPath.length
+    ) {
+        longestPath = path;
+    }
+}
+console.log(longestPath);
 
 async function loadSettings(settingsFile: string): Promise<Settings> {
     const defaultSettings: Settings = {
@@ -71,7 +121,7 @@ function findConnectedNodes<T>(
     direction: Direction
 ): Set<T> {
     const visitedNodes = new Set(startNodes);
-    const nodeStack = startNodes;
+    const nodeStack = [...startNodes];
     while (nodeStack.length > 0) {
         const currentNode = nodeStack.pop()!;
         const nextNodes = graph.getAdjacent(currentNode, direction);

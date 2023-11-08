@@ -31,6 +31,21 @@ export class Graph<T> {
         return [...this.nodes.keys()];
     }
 
+    public makeFilteredGraph(nodes: Set<T>): Graph<T> {
+        const filteredGraph = new Graph<T>();
+
+        for (const node of nodes) {
+            const nextNodes = this.getNext(node);
+            for (const nextNode of nextNodes) {
+                if (nodes.has(nextNode)) {
+                    filteredGraph.addEdge(node, nextNode);
+                }
+            }
+        }
+
+        return filteredGraph;
+    }
+
     private getOrAddNode(name: T): Node<T> {
         if (!this.nodes.has(name)) {
             this.nodes.set(name, new Node());
