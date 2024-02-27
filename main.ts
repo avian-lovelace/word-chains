@@ -1,26 +1,30 @@
 import wordlist from "wordlist-english";
 import { Graph, Direction } from "./Graph.ts";
 
+type WordGraphKey = string | SpecialNode;
+
+enum SpecialNode {
+    Start = 1,
+    End = 2,
+}
+
 const settings: Settings = await loadSettings(Deno.args[0] ?? "settings.json");
 
 const dictionary = getDictionary();
+const dictionarySet = new Set(dictionary);
 console.log(`Dictionary length: ${dictionary.length}`);
 const wordGraph = makeWordGraph(dictionary);
 console.log(`Graph nodes: ${wordGraph.getNodes().length}`);
-const dictionarySet = new Set(dictionary);
-const terminalNodes = wordGraph
-    .getNodes()
-    .filter((node) => dictionarySet.has(node));
-console.log(`Terminal nodes: ${terminalNodes.length}`);
+
 const startConnectedNodes = findConnectedNodes(
     wordGraph,
-    terminalNodes,
+    [SpecialNode.Start],
     Direction.Forward
 );
 console.log(`Start-connected nodes: ${startConnectedNodes.size}`);
 const endConnectedNodes = findConnectedNodes(
     wordGraph,
-    terminalNodes,
+    [SpecialNode.End],
     Direction.Backward
 );
 console.log(`End-connected nodes: ${endConnectedNodes.size}`);
@@ -28,35 +32,17 @@ const biconnectedNodes = [...startConnectedNodes.keys()].filter((node) =>
     endConnectedNodes.has(node)
 );
 console.log(`biconnected nodes: ${biconnectedNodes.length}`);
-const biconnectedNontermialNodes = biconnectedNodes.filter(
-    (node) => !dictionarySet.has(node)
-);
-const startNodes = terminalNodes.filter((node) => {
-    const nextNodes = wordGraph.getNext(node);
-    return biconnectedNontermialNodes.some((biconnectedNode) =>
-        nextNodes.has(biconnectedNode)
-    );
-});
-const endNodes = terminalNodes.filter((node) => {
-    const prevNodes = wordGraph.getPrev(node);
-    return biconnectedNontermialNodes.some((biconnectedNode) =>
-        prevNodes.has(biconnectedNode)
-    );
-});
 
-const filteredNodes = [
-    ...biconnectedNontermialNodes,
-    ...startNodes,
-    ...endNodes,
-];
-const filteredGraph = wordGraph.makeFilteredGraph(new Set(filteredNodes));
+const filteredGraph = wordGraph.makeFilteredGraph(new Set(biconnectedNodes));
 
-let longestPath: string[] = [];
+let longestPath: WordGraphKey[] = [];
 for (let i = 0; i < 1000000; i++) {
-    let currentNode = startNodes[Math.floor(Math.random() * startNodes.length)];
-    const path = [currentNode];
-    while (path.length === 1 || !dictionarySet.has(currentNode)) {
-        const nextNodes = [...filteredGraph.getNext(currentNode)];
+    let currentNode: WordGraphKey = SpecialNode.Start;
+    const path: WordGraphKey[] = [currentNode];
+    while (currentNode !== SpecialNode.End) {
+        const nextNodes: WordGraphKey[] = [
+            ...filteredGraph.getNext(currentNode),
+        ];
         currentNode = nextNodes[Math.floor(Math.random() * nextNodes.length)];
         path.push(currentNode);
     }
@@ -99,8 +85,8 @@ function getDictionary(): string[] {
 //     );
 // }
 
-function makeWordGraph(dictionary: string[]): Graph<string, undefined> {
-    const wordGraph = new Graph<string, undefined>();
+function makeWordGraph(dictionary: string[]): Graph<WordGraphKey, undefined> {
+    const wordGraph = new Graph<WordGraphKey, undefined>();
     for (const word of dictionary) {
         for (
             let i = settings.minOverlap;
@@ -117,6 +103,27 @@ function makeWordGraph(dictionary: string[]): Graph<string, undefined> {
             );
         }
     }
+
+    const terminalNodes = wordGraph
+        .getNodes()
+        .filter((node) => dictionarySet.has(node as string));
+    console.log(`Terminal nodes: ${terminalNodes.length}`);
+
+    for (const terminalNode of terminalNodes) {
+        wordGraph.addEdgeAndEndpoints(
+            SpecialNode.Start,
+            terminalNode,
+            undefined,
+            undefined
+        );
+        wordGraph.addEdgeAndEndpoints(
+            terminalNode,
+            SpecialNode.End,
+            undefined,
+            undefined
+        );
+    }
+
     return wordGraph;
 }
 

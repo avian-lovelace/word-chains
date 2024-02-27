@@ -15,6 +15,11 @@ export class Graph<Key, Data> {
         this.getOrAddNode(tailNode, tailData).addPrev(headNode);
     }
 
+    private addEdge(headNode: Key, tailNode: Key) {
+        this.getNode(headNode)!.addNext(tailNode);
+        this.getNode(tailNode)!.addPrev(headNode);
+    }
+
     public getNext(node: Key): Set<Key> {
         return this.getNode(node)?.next || new Set();
     }
@@ -56,6 +61,28 @@ export class Graph<Key, Data> {
         return filteredGraph;
     }
 
+    public transformData<TransformedData>(
+        dataTransform: (oldData: Data) => TransformedData
+    ): Graph<Key, TransformedData> {
+        const transformedGraph: Graph<Key, TransformedData> = new Graph<
+            Key,
+            TransformedData
+        >();
+
+        for (const node of this.nodes.values()) {
+            transformedGraph.getOrAddNode(node.key, dataTransform(node.data));
+        }
+
+        for (const node of this.nodes.values()) {
+            const nextNodes = this.getNext(node.key);
+            for (const nextNode of nextNodes) {
+                transformedGraph.addEdge(node.key, nextNode);
+            }
+        }
+
+        return transformedGraph;
+    }
+
     private getOrAddNode(key: Key, data: Data): Node<Key, Data> {
         if (!this.nodes.has(key)) {
             this.nodes.set(key, new Node(key, data));
@@ -63,7 +90,7 @@ export class Graph<Key, Data> {
         return this.nodes.get(key)!;
     }
 
-    private getNode(key: Key): Node<Key, Data> | undefined {
+    public getNode(key: Key): Node<Key, Data> | undefined {
         return this.nodes.get(key);
     }
 }
