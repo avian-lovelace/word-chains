@@ -99,8 +99,8 @@ function getDictionary(): string[] {
 //     );
 // }
 
-function makeWordGraph(dictionary: string[]): Graph<string> {
-    const wordGraph = new Graph<string>();
+function makeWordGraph(dictionary: string[]): Graph<string, undefined> {
+    const wordGraph = new Graph<string, undefined>();
     for (const word of dictionary) {
         for (
             let i = settings.minOverlap;
@@ -109,14 +109,19 @@ function makeWordGraph(dictionary: string[]): Graph<string> {
         ) {
             const startFragment = word.slice(0, i);
             const endFragment = word.slice(i);
-            wordGraph.addEdge(startFragment, endFragment);
+            wordGraph.addEdgeAndEndpoints(
+                startFragment,
+                endFragment,
+                undefined,
+                undefined
+            );
         }
     }
     return wordGraph;
 }
 
 function findConnectedNodes<T>(
-    graph: Graph<T>,
+    graph: Graph<T, unknown>,
     startNodes: T[],
     direction: Direction
 ): Set<T> {
