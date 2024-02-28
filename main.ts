@@ -1,5 +1,6 @@
 import wordlist from "wordlist-english";
 import { Graph, Direction } from "./Graph.ts";
+import { findLongPath } from "./PathSearch.ts";
 
 type WordGraphKey = string | SpecialNode;
 
@@ -35,25 +36,13 @@ console.log(`biconnected nodes: ${biconnectedNodes.length}`);
 
 const filteredGraph = wordGraph.makeFilteredGraph(new Set(biconnectedNodes));
 
-let longestPath: WordGraphKey[] = [];
-for (let i = 0; i < 1000000; i++) {
-    let currentNode: WordGraphKey = SpecialNode.Start;
-    const path: WordGraphKey[] = [currentNode];
-    while (currentNode !== SpecialNode.End) {
-        const nextNodes: WordGraphKey[] = [
-            ...filteredGraph.getNext(currentNode),
-        ];
-        currentNode = nextNodes[Math.floor(Math.random() * nextNodes.length)];
-        path.push(currentNode);
-    }
-    if (
-        new Set(path).size === path.length &&
-        path.length > longestPath.length
-    ) {
-        longestPath = path;
-    }
-}
-console.log(longestPath);
+const longPath = findLongPath(
+    filteredGraph,
+    SpecialNode.Start,
+    SpecialNode.End
+);
+printWordChain(longPath);
+console.log(`Final path length: ${longPath.length - 2}`);
 
 async function loadSettings(settingsFile: string): Promise<Settings> {
     const defaultSettings: Settings = {
@@ -145,4 +134,24 @@ function findConnectedNodes<T>(
         });
     }
     return visitedNodes;
+}
+
+function printWordChain(path: WordGraphKey[]) {
+    const trimmedPath = path.slice(1, -1) as string[];
+    const evenPath: string[] = [];
+    const oddPath: string[] = [trimmedPath[0]];
+    trimmedPath.forEach((fragment, i) => {
+        const word =
+            i !== trimmedPath.length - 1
+                ? fragment + trimmedPath[i + 1]
+                : fragment;
+        if (i % 2 === 0) {
+            evenPath.push(word);
+        } else {
+            oddPath.push(word);
+        }
+    });
+    console.log(evenPath.join(" "));
+    console.log();
+    console.log(oddPath.join(" "));
 }
