@@ -34,7 +34,9 @@ const biconnectedNodes = [...startConnectedNodes.keys()].filter((node) =>
 );
 console.log(`biconnected nodes: ${biconnectedNodes.length}`);
 
-const filteredGraph = wordGraph.makeFilteredGraph(new Set(biconnectedNodes));
+const filteredGraph = wordGraph.copyGraphAndFilterNodes(
+    new Set(biconnectedNodes)
+);
 
 const longPath = findLongPath(
     filteredGraph,
@@ -67,12 +69,6 @@ function getDictionary(): string[] {
     );
     return filteredWords.sort();
 }
-
-// function getStartWords(dictionary: string[]): string[] {
-//     return dictionary.filter((word: string, index: number) =>
-//         dictionary[index + 1]?.startsWith(word)
-//     );
-// }
 
 function makeWordGraph(dictionary: string[]): Graph<WordGraphKey, undefined> {
     const wordGraph = new Graph<WordGraphKey, undefined>();
