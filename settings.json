@@ -1,4 +1,5 @@
 {
-    "dictionary": "english/35",
-    "minOverlap": 1
+    "dictionaries": ["english/10", "english/20"],
+    "minOverlap": 1,
+    "pathAlgorithm": "breadthFirst"
 }

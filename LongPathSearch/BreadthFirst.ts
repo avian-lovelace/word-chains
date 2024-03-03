@@ -1,4 +1,4 @@
-import { Graph } from "./Graph.ts";
+import { Graph } from "../Graph.ts";
 
 /**
  * This function tries to find a long path between given start and end nodes in a graph. The algorithm is to traverse
@@ -12,7 +12,7 @@ import { Graph } from "./Graph.ts";
  * @returns A list of node keys for a path from the start to the end or an empty list if the start is not connected to
  * the end
  */
-export function findLongPath<Key>(
+export function breadthFirstLongPathSearch<Key>(
     graph: Graph<Key, unknown>,
     start: Key,
     end: Key

@@ -1,6 +1,7 @@
 import wordlist from "wordlist-english";
 import { Graph, Direction } from "./Graph.ts";
-import { findLongPath } from "./PathSearch.ts";
+import { randomWalkLongPathSearch } from "./LongPathSearch/RandomWalk.ts";
+import { breadthFirstLongPathSearch } from "./LongPathSearch/BreadthFirst.ts";
 
 type WordGraphKey = string | SpecialNode;
 
@@ -38,18 +39,37 @@ const filteredGraph = wordGraph.copyGraphAndFilterNodes(
     new Set(biconnectedNodes)
 );
 
-const longPath = findLongPath(
-    filteredGraph,
-    SpecialNode.Start,
-    SpecialNode.End
-);
-printWordChain(longPath);
-console.log(`Final path length: ${longPath.length - 2}`);
+let longPath: WordGraphKey[] = [];
+switch (settings.pathAlgorithm) {
+    case "randomWalk":
+        longPath = randomWalkLongPathSearch(
+            filteredGraph,
+            SpecialNode.Start,
+            SpecialNode.End,
+            settings.iterations
+        );
+        break;
+    case "breadthFirst":
+        longPath = breadthFirstLongPathSearch(
+            filteredGraph,
+            SpecialNode.Start,
+            SpecialNode.End
+        );
+        break;
+}
+if (longPath.length > 0) {
+    printWordChain(longPath);
+    console.log(`Final path length: ${longPath.length - 2}`);
+} else {
+    console.log("Failed to find a word chain");
+}
 
 async function loadSettings(settingsFile: string): Promise<Settings> {
     const defaultSettings: Settings = {
-        dictionary: "english/10",
+        dictionaries: ["english/10"],
         minOverlap: 2,
+        pathAlgorithm: "breadthFirst",
+        iterations: 100000,
     };
     const settingsFileText = await Deno.readTextFile(settingsFile);
     const fileSettings: Partial<Settings> = JSON.parse(settingsFileText);
@@ -57,12 +77,16 @@ async function loadSettings(settingsFile: string): Promise<Settings> {
 }
 
 interface Settings {
-    dictionary: string;
+    dictionaries: string[];
     minOverlap: number;
+    pathAlgorithm: "randomWalk" | "breadthFirst";
+    iterations: number;
 }
 
 function getDictionary(): string[] {
-    const words: string[] = wordlist[settings.dictionary];
+    const words: string[] = settings.dictionaries.flatMap(
+        (dictionary) => wordlist[dictionary]
+    );
     const onlyLettersRegex = /^[a-z]+$/;
     const filteredWords = words.filter((word: string) =>
         onlyLettersRegex.test(word)
