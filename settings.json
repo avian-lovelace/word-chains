@@ -1,5 +1,6 @@
 {
     "dictionaries": ["english/10", "english/20"],
     "minOverlap": 1,
-    "pathAlgorithm": "breadthFirst"
+    "pathAlgorithm": "breadthFirst",
+    "debug": true
 }

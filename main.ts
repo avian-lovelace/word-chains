@@ -14,26 +14,26 @@ const settings: Settings = await loadSettings(Deno.args[0] ?? "settings.json");
 
 const dictionary = getDictionary();
 const dictionarySet = new Set(dictionary);
-console.log(`Dictionary length: ${dictionary.length}`);
+debugLog(`Dictionary length: ${dictionary.length}`);
 const wordGraph = makeWordGraph(dictionary);
-console.log(`Graph nodes: ${wordGraph.getNodes().length}`);
+debugLog(`Graph nodes: ${wordGraph.getNodes().length}`);
 
 const startConnectedNodes = findConnectedNodes(
     wordGraph,
     [SpecialNode.Start],
     Direction.Forward
 );
-console.log(`Start-connected nodes: ${startConnectedNodes.size}`);
+debugLog(`Start-connected nodes: ${startConnectedNodes.size}`);
 const endConnectedNodes = findConnectedNodes(
     wordGraph,
     [SpecialNode.End],
     Direction.Backward
 );
-console.log(`End-connected nodes: ${endConnectedNodes.size}`);
+debugLog(`End-connected nodes: ${endConnectedNodes.size}`);
 const biconnectedNodes = [...startConnectedNodes.keys()].filter((node) =>
     endConnectedNodes.has(node)
 );
-console.log(`biconnected nodes: ${biconnectedNodes.length}`);
+debugLog(`biconnected nodes: ${biconnectedNodes.length}`);
 
 const filteredGraph = wordGraph.copyGraphAndFilterNodes(
     new Set(biconnectedNodes)
@@ -59,7 +59,7 @@ switch (settings.pathAlgorithm) {
 }
 if (longPath.length > 0) {
     printWordChain(longPath);
-    console.log(`Final path length: ${longPath.length - 2}`);
+    debugLog(`Final path length: ${longPath.length - 2}`);
 } else {
     console.log("Failed to find a word chain");
 }
@@ -70,6 +70,7 @@ async function loadSettings(settingsFile: string): Promise<Settings> {
         minOverlap: 2,
         pathAlgorithm: "breadthFirst",
         iterations: 100000,
+        debug: false,
     };
     const settingsFileText = await Deno.readTextFile(settingsFile);
     const fileSettings: Partial<Settings> = JSON.parse(settingsFileText);
@@ -81,6 +82,7 @@ interface Settings {
     minOverlap: number;
     pathAlgorithm: "randomWalk" | "breadthFirst";
     iterations: number;
+    debug: boolean;
 }
 
 function getDictionary(): string[] {
@@ -116,7 +118,7 @@ function makeWordGraph(dictionary: string[]): Graph<WordGraphKey, undefined> {
     const terminalNodes = wordGraph
         .getNodes()
         .filter((node) => dictionarySet.has(node as string));
-    console.log(`Terminal nodes: ${terminalNodes.length}`);
+    debugLog(`Terminal nodes: ${terminalNodes.length}`);
 
     for (const terminalNode of terminalNodes) {
         wordGraph.addEdgeAndEndpoints(
@@ -174,4 +176,10 @@ function printWordChain(path: WordGraphKey[]) {
     console.log(evenPath.join(" "));
     console.log();
     console.log(oddPath.join(" "));
+}
+
+function debugLog(message: string) {
+    if (settings.debug) {
+        console.log(message);
+    }
 }
